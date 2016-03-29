@@ -35,7 +35,7 @@ int main() {
 	glfwSetKeyCallback(window, key_callback);
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents(); // input
-		glClearColor(0.2f, 0.3f, 0.3f, 1.0f); // clear and draw color
+		glClearColor(0.9f, 0.3f, 0.3f, 1.0f); // clear and draw color
 		glClear(GL_COLOR_BUFFER_BIT); // clear color buffer
 		glfwSwapBuffers(window);
 	}
