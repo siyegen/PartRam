@@ -34,5 +34,16 @@
     <None Include="shaders\basic_frag.frag">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="shaders\moving_right.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\transform_vertex.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="imgs\wall.jpg">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

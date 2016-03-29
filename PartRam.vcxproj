@@ -126,6 +126,11 @@
   <ItemGroup>
     <None Include="shaders\basic_frag.frag" />
     <None Include="shaders\basic_vertex.vs" />
+    <None Include="shaders\moving_right.vs" />
+    <None Include="shaders\transform_vertex.vs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="imgs\wall.jpg" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
