@@ -9,13 +9,14 @@
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 
 int main() {
+	const int width = 1280, height = 1024;
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "LearnOpenGL", nullptr, nullptr);
+	GLFWwindow* window = glfwCreateWindow(width, height, "LearnOpenGL", nullptr, nullptr);
 	if (!window) {
 		std::cout << "Couldn't create window" << std::endl;
 		glfwTerminate();
@@ -30,7 +31,7 @@ int main() {
 		return -1;
 	}
 
-	glViewport(0, 0, 800, 600);
+	glViewport(0, 0, width, height);
 	glfwSetKeyCallback(window, key_callback);
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents(); // input
