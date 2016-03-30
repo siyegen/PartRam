@@ -1,7 +1,4 @@
 #include "fpscamera.h"
-#include <iostream>
-#include <string>
-#include <iomanip>
 
 // Constructor with vectors
 FPSCamera::FPSCamera(glm::vec3 position, glm::vec3 up, GLfloat yaw , GLfloat pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM) {
@@ -10,9 +7,6 @@ FPSCamera::FPSCamera(glm::vec3 position, glm::vec3 up, GLfloat yaw , GLfloat pit
 	Yaw = yaw;
 	Pitch = pitch;
 	updateCameraVectors();
-	std::cout << up.x << " " << up.y << std::endl;
-	std::cout << "yaw: " << std::fixed << std::setprecision(3) << yaw;
-	std::cout << std::endl;
 }
 // Constructor with scalar values
 FPSCamera::FPSCamera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX, GLfloat upY, GLfloat upZ, GLfloat yaw, GLfloat pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM) {
