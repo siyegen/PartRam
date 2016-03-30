@@ -33,8 +33,6 @@ Shader::Shader(const GLchar * vertexPath, const GLchar * fragmentPath) {
 	const GLchar* fShaderCode = fragmentCode.c_str();
 
 	GLuint vertex, fragment;
-	GLint success;
-	GLchar infoLog[512];
 
 	// Vertex
 	vertex = glCreateShader(GL_VERTEX_SHADER);
