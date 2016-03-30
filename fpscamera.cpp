@@ -1,12 +1,18 @@
 #include "fpscamera.h"
+#include <iostream>
+#include <string>
+#include <iomanip>
 
 // Constructor with vectors
-FPSCamera::FPSCamera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), GLfloat yaw = YAW, GLfloat pitch = PITCH) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM) {
+FPSCamera::FPSCamera(glm::vec3 position, glm::vec3 up, GLfloat yaw , GLfloat pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM) {
 	Position = position;
 	WorldUp = up;
 	Yaw = yaw;
 	Pitch = pitch;
 	updateCameraVectors();
+	std::cout << up.x << " " << up.y << std::endl;
+	std::cout << "yaw: " << std::fixed << std::setprecision(3) << yaw;
+	std::cout << std::endl;
 }
 // Constructor with scalar values
 FPSCamera::FPSCamera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX, GLfloat upY, GLfloat upZ, GLfloat yaw, GLfloat pitch) : Front(glm::vec3(0.0f, 0.0f, -1.0f)), MovementSpeed(SPEED), MouseSensitivity(SENSITIVTY), Zoom(ZOOM) {
@@ -18,11 +24,12 @@ FPSCamera::FPSCamera(GLfloat posX, GLfloat posY, GLfloat posZ, GLfloat upX, GLfl
 }
 
 glm::mat4 FPSCamera::GetViewMatrix() {
-	return glm::mat4();
+	return glm::lookAt(Position, Position + Front, Up);
 }
 
 void FPSCamera::ProcessKeyboard(Camera_Movement direction, GLfloat deltaTime) {
 	GLfloat velocity = this->MovementSpeed * deltaTime;
+
 	if (direction == Camera_Movement::FORWARD)
 		this->Position += this->Front * velocity;
 	if (direction == Camera_Movement::BACKWARD)
