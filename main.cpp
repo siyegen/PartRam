@@ -47,6 +47,7 @@ glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
 
 int main() {
 	glfwInit();
+	glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -85,6 +86,7 @@ void runSample4Lighting(GLFWwindow* window) {
 
 	// Vertices and setting them up to draw
 	GLfloat vertices[] = {
+		// Positions					// Normals
 		-0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 		0.5f, -0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
 		0.5f,  0.5f, -0.5f,  0.0f,  0.0f, -1.0f,
@@ -140,7 +142,7 @@ void runSample4Lighting(GLFWwindow* window) {
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 	// Normal attribute
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(1);
 	glBindVertexArray(0); // Unbind VAO
 
@@ -194,6 +196,8 @@ void runSample4Lighting(GLFWwindow* window) {
 		// Draw container
 		glBindVertexArray(containerVAO);
 		glm::mat4 model;
+		GLfloat rotAngle = (GLfloat)glfwGetTime() * 45.0f;
+		model = glm::rotate(model, glm::radians(rotAngle), glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
@@ -295,7 +299,7 @@ void runSample4(GLFWwindow* window) {
 	glEnableVertexAttribArray(0);
 
 	glBindVertexArray(0); // Unbind VAO
-	
+
 	glm::mat4 model;
 	glm::mat4 view;
 	glm::mat4 projection;
@@ -313,7 +317,7 @@ void runSample4(GLFWwindow* window) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		ourShader.Use();
-		
+
 		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
 		view = camera.GetViewMatrix();
 		projection = glm::perspective(camera.Zoom, (GLfloat)(WIDTH / HEIGHT), 0.1f, 100.0f);
@@ -407,7 +411,7 @@ void runSample3(GLFWwindow* window) {
 	// Bind VBO here
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-	
+
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
 
@@ -415,7 +419,7 @@ void runSample3(GLFWwindow* window) {
 
 	glViewport(0, 0, WIDTH, HEIGHT);
 	glfwSetKeyCallback(window, key_callback);
-	
+
 	const int numberOfCubes = sizeof(cubePositions) / sizeof(cubePositions[0]);
 	while (!glfwWindowShouldClose(window)) {
 		glfwPollEvents(); // input
@@ -470,7 +474,7 @@ void runSample2(GLFWwindow* window) {
 		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,	// Top Right
 		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,  // Bottom Right
 		-0.5f, -0.5f, 0.0f,  0.0f, 0.0f, 1.0f,	// Bottom Left
-		-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,	// Top Left 
+		-0.5f,  0.5f, 0.0f,  1.0f, 1.0f, 0.0f,	// Top Left
 	};
 	GLuint indices[] = {  // Note that we start from 0!
 		0, 1, 3, // First Triangle
@@ -535,8 +539,8 @@ void runSample1(GLFWwindow* window) {
 	// Vertices and setting them up to draw
 	GLfloat vertices[] = {
 		// positions		// Colors
-		-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // Left  
-		0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, // Right 
+		-0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f, // Left
+		0.5f, -0.5f, 0.0f,  0.0f, 1.0f, 0.0f, // Right
 		0.0f,  0.5f, 0.0f,  0.0f, 0.0f, 1.0f, // Top
 	};
 
@@ -612,7 +616,7 @@ void doMovement() {
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
-	// When a user presses the escape key, we set the WindowShouldClose property to true, 
+	// When a user presses the escape key, we set the WindowShouldClose property to true,
 	// closing the application
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
