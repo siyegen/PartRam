@@ -154,7 +154,6 @@ void runSample3(GLFWwindow* window) {
 
 			glDrawArrays(GL_TRIANGLES, 0, 36);
 		}
-		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
