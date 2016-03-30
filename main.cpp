@@ -12,11 +12,32 @@
 #include "shader.h"
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void doMovement();
 void runSample1(GLFWwindow* window);
 void runSample2(GLFWwindow* window);
 void runSample3(GLFWwindow* window);
+void runSample4(GLFWwindow* window);
 
 const GLuint WIDTH = 1280, HEIGHT = 1024;
+
+// to get top down perspective
+//glm::vec3 cameraPos = glm::vec3(0.0f, 2.0f, 3.0f);
+//glm::vec3 cameraFront = glm::vec3(0.0f, -1.0f, -1.0f);
+
+glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 6.0f);
+glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+
+bool keys[1024];
+
+GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
+GLfloat lastFrame = 0.0f;  	// Time of last frame
+
+// Used for fps camera
+GLfloat lastX = WIDTH/2.0f, lastY = HEIGHT/2.0f;
+GLfloat pitch = 0.0f, yaw = -90.0f;
+bool firstMouse = true;
 
 int main() {
 	glfwInit();
@@ -39,7 +60,119 @@ int main() {
 		std::cout << "Couldn't init glew" << std::endl;
 		return -1;
 	}
-	runSample3(window);
+	runSample4(window);
+}
+
+void runSample4(GLFWwindow* window) {
+	// Setup mouse for fps style camera, will not need for game
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetCursorPosCallback(window, mouse_callback);
+
+	// Load our shaders
+	Shader ourShader("shaders/default3d.vs", "shaders/basic_frag.frag");
+
+	// Vertices and setting them up to draw
+	GLfloat vertices[] = {
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f,  0.5f, -0.5f,
+		0.5f,  0.5f, -0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+
+		-0.5f, -0.5f,  0.5f,
+		0.5f, -0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+
+		0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f,  0.5f,
+		0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f, -0.5f,
+
+		-0.5f,  0.5f, -0.5f,
+		0.5f,  0.5f, -0.5f,
+		0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
+	};
+
+	GLuint VBO, VAO;
+	glGenVertexArrays(1, &VAO);
+	glGenBuffers(1, &VBO);
+	glBindVertexArray(VAO);
+
+	// Bind VBO here
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+
+	glBindVertexArray(0); // Unbind VAO
+
+	glViewport(0, 0, WIDTH, HEIGHT);
+	glfwSetKeyCallback(window, key_callback);
+
+
+	glm::mat4 model;
+	glm::mat4 view;
+	glm::mat4 projection;
+	while (!glfwWindowShouldClose(window)) {
+		GLfloat currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+		glfwPollEvents(); // input
+		doMovement();
+
+		glEnable(GL_DEPTH_TEST);
+		//glClearColor(0.9f, 0.3f, 0.3f, 1.0f); // clear and draw color
+		glClearColor(0.4f, 0.2f, 0.4f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		ourShader.Use();
+		
+		model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+		view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+		projection = glm::perspective(glm::radians(45.0f), (GLfloat)(WIDTH / HEIGHT), 0.1f, 100.0f);
+
+		GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
+		GLint viewLoc = glGetUniformLocation(ourShader.Program, "view");
+		GLint projectionLoc = glGetUniformLocation(ourShader.Program, "projection");
+
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+		glBindVertexArray(VAO);
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+
+		glfwSwapBuffers(window);
+	}
+
+	glDeleteVertexArrays(1, &VAO);
+	glDeleteBuffers(1, &VBO);
+	glfwTerminate();
 }
 
 void runSample3(GLFWwindow* window) {
@@ -292,9 +425,58 @@ void runSample1(GLFWwindow* window) {
 	glfwTerminate();
 }
 
+void doMovement() {
+	// Camera controls
+	GLfloat cameraSpeed = 3.0f * deltaTime;
+	if (keys[GLFW_KEY_W])
+		cameraPos += cameraSpeed * cameraFront;
+	if (keys[GLFW_KEY_S])
+		cameraPos -= cameraSpeed * cameraFront;
+	if (keys[GLFW_KEY_A])
+		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+	if (keys[GLFW_KEY_D])
+		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+}
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
 	// When a user presses the escape key, we set the WindowShouldClose property to true, 
 	// closing the application
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
+
+	if (action == GLFW_PRESS)
+		keys[key] = true;
+	else if (action == GLFW_RELEASE)
+		keys[key] = false;
 }
+
+void mouse_callback(GLFWwindow * window, double xpos, double ypos) {
+	if (firstMouse) {
+		lastX = xpos;
+		lastY = ypos;
+		firstMouse = false;
+	}
+	GLfloat xoffset = xpos - lastX;
+	GLfloat yoffset = lastY - ypos; // Reversed since y-coordinates range from bottom to top
+	lastX = xpos;
+	lastY = ypos;
+
+	GLfloat sensitivity = 0.11f;
+	xoffset *= sensitivity;
+	yoffset *= sensitivity;
+
+	yaw += xoffset;
+	pitch += yoffset;
+
+	if (pitch > 89.0f)
+		pitch = 89.0f;
+	if (pitch < -89.0f)
+		pitch = -89.0f;
+
+	glm::vec3 front;
+	front.x = cos(glm::radians(yaw)) * cos(glm::radians(pitch));
+	front.y = sin(glm::radians(pitch));
+	front.z = sin(glm::radians(yaw)) * cos(glm::radians(pitch));
+	cameraFront = glm::normalize(front);
+}
+
