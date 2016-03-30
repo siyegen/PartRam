@@ -40,6 +40,9 @@
     <None Include="shaders\transform_vertex.vs">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="shaders\default3d.vs">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="imgs\wall.jpg">
