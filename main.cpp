@@ -41,6 +41,10 @@ bool firstMouse = true;
 GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
 GLfloat lastFrame = 0.0f;  	// Time of last frame
 
+
+// Light Position
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
 int main() {
 	glfwInit();
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -150,9 +154,6 @@ void runSample4Lighting(GLFWwindow* window) {
 	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
 
-	// Light Position
-	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
-
 	while (!glfwWindowShouldClose(window)) {
 		// timeDelta for different framerates
 		GLfloat currentFrame = glfwGetTime();
@@ -163,7 +164,7 @@ void runSample4Lighting(GLFWwindow* window) {
 		doMovement();
 
 		// Color buffer clear
-		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		lightingShader.Use();
@@ -172,7 +173,7 @@ void runSample4Lighting(GLFWwindow* window) {
 		GLint lightColorLoc = glGetUniformLocation(lightingShader.Program, "lightColor");
 		GLint lightPosLoc = glGetUniformLocation(lightingShader.Program, "lightPos");
 		glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
-		glUniform3f(lightColorLoc, 1.0f, 0.5f, 1.0f);
+		glUniform3f(lightColorLoc, 0.8f, 0.5f, 1.0f);
 		glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
 
 		// Camera Transforms
@@ -597,6 +598,17 @@ void doMovement() {
 		camera.ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
 	if (keys[GLFW_KEY_D])
 		camera.ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
+
+	GLfloat lightMove = 0.1f;
+
+	if (keys[GLFW_KEY_LEFT])
+		lightPos += glm::vec3(lightMove, 0.0f, lightMove);
+	if (keys[GLFW_KEY_RIGHT])
+		lightPos -= glm::vec3(lightMove, 0.0f, lightMove);
+	if (keys[GLFW_KEY_UP])
+		lightPos += glm::vec3(0.0f, lightMove, 0.0f);
+	if (keys[GLFW_KEY_DOWN])
+		lightPos -= glm::vec3(0.0f, lightMove, 0.0f);
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
