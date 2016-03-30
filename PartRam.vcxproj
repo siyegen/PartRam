@@ -129,7 +129,10 @@
     <None Include="shaders\basic_frag.frag" />
     <None Include="shaders\basic_vertex.vs" />
     <None Include="shaders\default3d.vs" />
+    <None Include="shaders\difuse_only.frag" />
     <None Include="shaders\moving_right.vs" />
+    <None Include="shaders\simple3d.vs" />
+    <None Include="shaders\lamp.frag" />
     <None Include="shaders\transform_vertex.vs" />
   </ItemGroup>
   <ItemGroup>

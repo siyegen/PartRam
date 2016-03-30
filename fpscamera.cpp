@@ -54,12 +54,12 @@ void FPSCamera::ProcessMouseMovement(GLfloat xoffset, GLfloat yoffset, GLboolean
 }
 
 void FPSCamera::ProcessMouseScroll(GLfloat yoffset) {
-	if (this->Zoom >= 1.0f && this->Zoom <= 45.0f)
+	/*if (this->Zoom >= 1.0f && this->Zoom <= 45.0f)
 		this->Zoom -= yoffset;
 	if (this->Zoom <= 1.0f)
 		this->Zoom = 1.0f;
 	if (this->Zoom >= 45.0f)
-		this->Zoom = 45.0f;
+		this->Zoom = 45.0f;*/
 }
 
 void FPSCamera::updateCameraVectors() {

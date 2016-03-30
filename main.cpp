@@ -24,13 +24,15 @@ void runSample2(GLFWwindow* window);
 void runSample3(GLFWwindow* window);
 void runSample4(GLFWwindow* window);
 
+void runSample4Lighting(GLFWwindow* window);
+
 const GLuint WIDTH = 1280, HEIGHT = 1024;
 
 // to get top down perspective
 //glm::vec3 cameraPos = glm::vec3(0.0f, 2.0f, 3.0f);
 //glm::vec3 cameraFront = glm::vec3(0.0f, -1.0f, -1.0f);
 
-FPSCamera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+FPSCamera camera(glm::vec3(-1.5f, 2.5f, 4.0f));
 // Used for fps camera
 bool keys[1024];
 GLfloat lastX = WIDTH/2.0f, lastY = HEIGHT/2.0f;
@@ -38,7 +40,6 @@ bool firstMouse = true;
 
 GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
 GLfloat lastFrame = 0.0f;  	// Time of last frame
-
 
 int main() {
 	glfwInit();
@@ -61,7 +62,160 @@ int main() {
 		std::cout << "Couldn't init glew" << std::endl;
 		return -1;
 	}
-	runSample4(window);
+	runSample4Lighting(window);
+}
+
+void runSample4Lighting(GLFWwindow* window) {
+	// Setup mouse for fps style camera, will not need for game
+	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	glfwSetKeyCallback(window, key_callback);
+	glfwSetCursorPosCallback(window, mouse_callback);
+	glfwSetScrollCallback(window, scroll_callback);
+
+	glViewport(0, 0, WIDTH, HEIGHT);
+	glEnable(GL_DEPTH_TEST);
+
+	// Load our shaders
+	Shader lightingShader("shaders/simple3d.vs", "shaders/difuse_only.frag");
+	Shader lampShader("shaders/simple3d.vs", "shaders/lamp.frag");
+
+	// Vertices and setting them up to draw
+	GLfloat vertices[] = {
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f,  0.5f, -0.5f,
+		0.5f,  0.5f, -0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+
+		-0.5f, -0.5f,  0.5f,
+		0.5f, -0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f, -0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+
+		0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+
+		-0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f, -0.5f,
+		0.5f, -0.5f,  0.5f,
+		0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f,  0.5f,
+		-0.5f, -0.5f, -0.5f,
+
+		-0.5f,  0.5f, -0.5f,
+		0.5f,  0.5f, -0.5f,
+		0.5f,  0.5f,  0.5f,
+		0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f,  0.5f,
+		-0.5f,  0.5f, -0.5f,
+	};
+
+	GLuint VBO, containerVAO;
+	glGenVertexArrays(1, &containerVAO);
+	glGenBuffers(1, &VBO);
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+	glBindVertexArray(containerVAO);
+	// Position attribute
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0); // Unbind VAO
+
+	// Light source VAO
+	GLuint lightVAO;
+	glGenVertexArrays(1, &lightVAO);
+	glBindVertexArray(lightVAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+	// Set the vertex attributes (only position data for the lamp))
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), (GLvoid*)0);
+	glEnableVertexAttribArray(0);
+	glBindVertexArray(0);
+
+	// Light Position
+	glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
+	while (!glfwWindowShouldClose(window)) {
+		// timeDelta for different framerates
+		GLfloat currentFrame = glfwGetTime();
+		deltaTime = currentFrame - lastFrame;
+		lastFrame = currentFrame;
+
+		glfwPollEvents(); // input
+		doMovement();
+
+		// Color buffer clear
+		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		lightingShader.Use();
+		// setup lighting uniform values
+		GLint objectColorLoc = glGetUniformLocation(lightingShader.Program, "objectColor");
+		GLint lightColorLoc = glGetUniformLocation(lightingShader.Program, "lightColor");
+		glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
+		glUniform3f(lightColorLoc, 1.0f, 0.5f, 1.0f);
+
+		// Camera Transforms
+		//model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+		glm::mat4 view;
+		glm::mat4 projection;
+		view = camera.GetViewMatrix();
+		projection = glm::perspective(camera.Zoom, (GLfloat)(WIDTH / HEIGHT), 0.1f, 100.0f);
+
+		// uniform locations for vertex
+		GLint modelLoc = glGetUniformLocation(lightingShader.Program, "model");
+		GLint viewLoc = glGetUniformLocation(lightingShader.Program, "view");
+		GLint projectionLoc = glGetUniformLocation(lightingShader.Program, "projection");
+		// pass mat4 to shader
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+		// Draw container
+		glBindVertexArray(containerVAO);
+		glm::mat4 model;
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+
+		// lamp object
+		lampShader.Use();
+		modelLoc = glGetUniformLocation(lampShader.Program, "model");
+		viewLoc = glGetUniformLocation(lampShader.Program, "view");
+		projectionLoc = glGetUniformLocation(lampShader.Program, "projection");
+		// Set mat4 for shader
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+		model = glm::mat4();
+		model = glm::translate(model, lightPos);
+		model = glm::scale(model, glm::vec3(0.2f)); // Make it a smaller cube
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		// Draw using light vertex attributes object (VAO)
+		glBindVertexArray(lightVAO); // tells us what VAO to use, then unbind
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+
+		glfwSwapBuffers(window);
+	}
+
+	glDeleteVertexArrays(1, &containerVAO);
+	glDeleteVertexArrays(1, &lightVAO);
+	glDeleteBuffers(1, &VBO);
+	glfwTerminate();
 }
 
 void runSample4(GLFWwindow* window) {

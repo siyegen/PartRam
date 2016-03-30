@@ -49,6 +49,15 @@
     <None Include="shaders\default3d.vs">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="shaders\difuse_only.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\simple3d.vs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\lamp.frag">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="imgs\wall.jpg">
