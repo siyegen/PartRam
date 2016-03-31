@@ -62,6 +62,13 @@ int main() {
 		return -1;
 	}
 
+	char *GL_version = (char *)glGetString(GL_VERSION);
+	char *GL_vendor = (char *)glGetString(GL_VENDOR);
+	char *GL_renderer = (char *)glGetString(GL_RENDERER);
+	std::cout << "Version" << GL_version << std::endl;
+	std::cout << "Vendor" << GL_vendor << std::endl;
+	std::cout << "Remderer" << GL_renderer << std::endl;
+
 	// Setup mouse for fps style camera, will not need for game
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glfwSetKeyCallback(window, key_callback);
@@ -73,6 +80,7 @@ int main() {
 
 	// Load our shaders
 	Shader lightingShader("shaders/simple3d.vs", "shaders/difuse_only.frag");
+	Shader outlineShader("shaders/outline.vs", "shaders/outline.frag", "shaders/outline_geometry.gs");
 	Shader lampShader("shaders/simple3d.vs", "shaders/lamp.frag");
 
 	// Vertices and setting them up to draw
@@ -202,6 +210,18 @@ int main() {
 		glBindVertexArray(containerVAO);
 		glm::mat4 model;
 		model = glm::rotate(model, glm::radians(rotateCube), glm::vec3(0.0f, 1.0f, 0.0f));
+		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+		glDrawArrays(GL_TRIANGLES, 0, 36);
+		glBindVertexArray(0);
+
+		// Draw normals
+		outlineShader.Use();
+		glBindVertexArray(containerVAO);
+		modelLoc = glGetUniformLocation(outlineShader.Program, "model");
+		viewLoc = glGetUniformLocation(outlineShader.Program, "view");
+		projectionLoc = glGetUniformLocation(outlineShader.Program, "projection");
+		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);

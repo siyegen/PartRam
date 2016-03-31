@@ -123,6 +123,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="fpscamera.h" />
+    <ClInclude Include="resource_manager.h" />
     <ClInclude Include="shader.h" />
   </ItemGroup>
   <ItemGroup>
@@ -131,6 +132,9 @@
     <None Include="shaders\default3d.vs" />
     <None Include="shaders\difuse_only.frag" />
     <None Include="shaders\moving_right.vs" />
+    <None Include="shaders\outline.frag" />
+    <None Include="shaders\outline.vs" />
+    <None Include="shaders\outline_geometry.gs" />
     <None Include="shaders\simple3d.vs" />
     <None Include="shaders\lamp.frag" />
     <None Include="shaders\transform_vertex.vs" />

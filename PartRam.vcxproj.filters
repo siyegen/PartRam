@@ -32,6 +32,9 @@
     <ClInclude Include="fpscamera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="resource_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\basic_vertex.vs">
@@ -56,6 +59,15 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="shaders\lamp.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\outline_geometry.gs">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\outline.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\outline.vs">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

@@ -13,8 +13,9 @@ class Shader {
 public:
 	// The program ID
 	GLuint Program;
+	// Basic constructor 
 	// Constructor reads and builds the shader
-	Shader(const GLchar* vertexPath, const GLchar* fragmentPath);
+	Shader(const GLchar* vertexPath, const GLchar* fragmentPath, const GLchar* geometryPath=nullptr);
 	// Use the program
 	void Use();
 private:
