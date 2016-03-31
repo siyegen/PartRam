@@ -84,6 +84,7 @@ int main() {
 	glViewport(0, 0, WIDTH, HEIGHT);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_ALPHA_TEST);
 
 	// Load our shaders
 	Shader lightedModel("shaders/simple3d.vs", "shaders/difuse_only.frag");
