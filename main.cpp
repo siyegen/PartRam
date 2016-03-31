@@ -27,7 +27,7 @@ const GLuint WIDTH = 1280, HEIGHT = 1024;
 //glm::vec3 cameraPos = glm::vec3(0.0f, 2.0f, 3.0f);
 //glm::vec3 cameraFront = glm::vec3(0.0f, -1.0f, -1.0f);
 
-const int levelWidth = 20;
+const int levelWidth = 30;
 const int numCubes = 50 * levelWidth;
 
 FPSCamera camera(glm::vec3(((GLfloat)levelWidth/2 - 0.5f), 12.5f, 20.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -15.0f);
@@ -84,6 +84,8 @@ int main() {
 	glViewport(0, 0, WIDTH, HEIGHT);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_MULTISAMPLE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_ALPHA_TEST);
 
 	// Load our shaders

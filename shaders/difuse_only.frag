@@ -20,5 +20,5 @@ void main()
 	vec3 diffuse = diff * lightColor;
 
     vec3 result = (ambient+diffuse) * objectColor;
-    color = vec4(result, 0.6f);
+    color = vec4(result, 1.0f);
 } 
