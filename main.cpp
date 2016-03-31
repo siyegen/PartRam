@@ -19,8 +19,6 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void doMovement();
 
-void runSample4Lighting(GLFWwindow* window);
-
 const GLuint WIDTH = 1280, HEIGHT = 1024;
 
 // to get top down perspective
@@ -36,6 +34,8 @@ bool firstMouse = true;
 GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
 GLfloat lastFrame = 0.0f;  	// Time of last frame
 
+
+GLfloat rotateCube = 0.0f;
 
 // Light Position
 glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
@@ -121,6 +121,20 @@ int main() {
 		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 	};
 
+
+	glm::vec3 cubePositions[] = {
+		glm::vec3(0.0f,  0.0f,  0.0f),
+		glm::vec3(2.0f,  5.0f, -15.0f),
+		glm::vec3(-1.5f, -2.2f, -2.5f),
+		glm::vec3(-3.8f, -2.0f, -12.3f),
+		glm::vec3(2.4f, -0.4f, -3.5f),
+		glm::vec3(-1.7f,  3.0f, -7.5f),
+		glm::vec3(1.3f, -2.0f, -2.5f),
+		glm::vec3(1.5f,  2.0f, -2.5f),
+		glm::vec3(1.5f,  0.2f, -1.5f),
+		glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
+
 	GLuint VBO, containerVAO;
 	glGenVertexArrays(1, &containerVAO);
 	glGenBuffers(1, &VBO);
@@ -187,6 +201,7 @@ int main() {
 		// Draw container
 		glBindVertexArray(containerVAO);
 		glm::mat4 model;
+		model = glm::rotate(model, glm::radians(rotateCube), glm::vec3(0.0f, 1.0f, 0.0f));
 		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 		glDrawArrays(GL_TRIANGLES, 0, 36);
 		glBindVertexArray(0);
@@ -228,6 +243,9 @@ void doMovement() {
 		camera.ProcessKeyboard(Camera_Movement::LEFT, deltaTime);
 	if (keys[GLFW_KEY_D])
 		camera.ProcessKeyboard(Camera_Movement::RIGHT, deltaTime);
+
+	if (keys[GLFW_KEY_SPACE])
+		rotateCube += 2.5f;
 
 	GLfloat lightMove = 0.1f;
 
