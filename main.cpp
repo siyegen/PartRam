@@ -19,13 +19,18 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos);
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void doMovement();
 
+void drawCube(glm::vec3 cube, Shader* modelShader, Shader* lineShader, glm::mat4 view, glm::mat4 projection, GLuint containerVAO);
+
 const GLuint WIDTH = 1280, HEIGHT = 1024;
 
 // to get top down perspective
 //glm::vec3 cameraPos = glm::vec3(0.0f, 2.0f, 3.0f);
 //glm::vec3 cameraFront = glm::vec3(0.0f, -1.0f, -1.0f);
 
-FPSCamera camera(glm::vec3(0.0f, 2.5f, 4.0f));
+const int levelWidth = 20;
+const int numCubes = 50 * levelWidth;
+
+FPSCamera camera(glm::vec3(((GLfloat)levelWidth/2 - 0.5f), 12.5f, 20.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -15.0f);
 // Used for fps camera
 bool keys[1024];
 GLfloat lastX = WIDTH/2.0f, lastY = HEIGHT/2.0f;
@@ -38,7 +43,7 @@ GLfloat lastFrame = 0.0f;  	// Time of last frame
 GLfloat rotateCube = 0.0f;
 
 // Light Position
-glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+glm::vec3 lightPos(1.2f, 15.0f, 2.0f);
 
 int main() {
 	glfwInit();
@@ -130,26 +135,15 @@ int main() {
 		-0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,
 		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 	};
-
-	/*glm::vec3 cubePositions[] = {
-		glm::vec3(0.0f,  0.0f,  0.0f),
-		glm::vec3(2.0f,  5.0f, -15.0f),
-		glm::vec3(-1.5f, -2.2f, -2.5f),
-		glm::vec3(-3.8f, -2.0f, -12.3f),
-		glm::vec3(2.4f, -0.4f, -3.5f),
-		glm::vec3(-1.7f,  3.0f, -7.5f),
-		glm::vec3(1.3f, -2.0f, -2.5f),
-		glm::vec3(1.5f,  2.0f, -2.5f),
-		glm::vec3(1.5f,  0.2f, -1.5f),
-		glm::vec3(-1.3f,  1.0f, -1.5f)
-	};*/
-
-	const int numCubes = 2;
-	// 2x2
+	
 	glm::vec3 cubePositions[numCubes];
-	for (int i = 0; i < numCubes; i++) {
-		GLfloat x = 1.0f * (i);
-		cubePositions[i] = glm::vec3(x, 0.0f, 0.0f);
+	for (int i = 0, j = 0; i < numCubes; i++) {
+		GLfloat x = 1.0f * (i%levelWidth);
+		if (i != 0 && i % levelWidth == 0) {
+			j++;
+		}
+		GLfloat z = -1.0f * j;
+		cubePositions[i] = glm::vec3(x, 0.0f, z);
 	}
 
 	GLuint VBO, containerVAO;
@@ -168,7 +162,7 @@ int main() {
 	glEnableVertexAttribArray(1);
 	glBindVertexArray(0); // Unbind VAO
 
-						  // Light source VAO
+	// Light source VAO
 	GLuint lightVAO;
 	glGenVertexArrays(1, &lightVAO);
 	glBindVertexArray(lightVAO);
@@ -201,55 +195,10 @@ int main() {
 
 
 		glm::mat4 model;
-		glm::mat4 view;
+		glm::mat4 view = camera.GetViewMatrix();
 
 		for (glm::vec3 cube : cubePositions) {
-			lightedModel.Use();
-			model = glm::mat4();
-			// setup lighting uniform values
-			GLint objectColorLoc = glGetUniformLocation(lightedModel.Program, "objectColor");
-			GLint lightColorLoc = glGetUniformLocation(lightedModel.Program, "lightColor");
-			GLint lightPosLoc = glGetUniformLocation(lightedModel.Program, "lightPos");
-			glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
-			glUniform3f(lightColorLoc, 0.8f, 0.5f, 1.0f);
-			glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
-
-			// Camera Transforms
-			//model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-			view = camera.GetViewMatrix();
-
-			// uniform locations for vertex
-			GLint modelLoc = glGetUniformLocation(lightedModel.Program, "model");
-			GLint viewLoc = glGetUniformLocation(lightedModel.Program, "view");
-			GLint projectionLoc = glGetUniformLocation(lightedModel.Program, "projection");
-			// pass mat4 to shader
-			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-			// Draw container
-			glBindVertexArray(containerVAO);
-			model = glm::translate(model, cube);
-
-			// ADJUST FOR ROTATE
-			model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-			model = glm::rotate(model, glm::radians(rotateCube), glm::vec3(0.0f, 1.0f, 0.0f));
-			model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-			glBindVertexArray(0);
-
-			// Draw normals
-			outlineShader.Use();
-			glBindVertexArray(containerVAO);
-			modelLoc = glGetUniformLocation(outlineShader.Program, "model");
-			viewLoc = glGetUniformLocation(outlineShader.Program, "view");
-			projectionLoc = glGetUniformLocation(outlineShader.Program, "projection");
-			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-			glDrawArrays(GL_TRIANGLES, 0, 36);
-			glBindVertexArray(0);
+			drawCube(cube, &lightedModel, &outlineShader, view, projection, containerVAO);
 		}
 		
 		// lamp object
@@ -335,4 +284,46 @@ void mouse_callback(GLFWwindow * window, double xpos, double ypos) {
 
 void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 	camera.ProcessMouseScroll(yoffset);
+}
+
+void drawCube(glm::vec3 cube, Shader* modelShader, Shader* lineShader, glm::mat4 view, glm::mat4 projection, GLuint containerVAO) {
+	modelShader->Use();
+	glm::mat4 model;
+	// setup lighting uniform values
+	GLint objectColorLoc = glGetUniformLocation(modelShader->Program, "objectColor");
+	GLint lightColorLoc = glGetUniformLocation(modelShader->Program, "lightColor");
+	GLint lightPosLoc = glGetUniformLocation(modelShader->Program, "lightPos");
+	glUniform3f(objectColorLoc, 0.31f, 1.0f, 0.31f);
+	glUniform3f(lightColorLoc, 0.8f, 0.5f, 1.0f);
+	glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
+	
+	// uniform locations for vertex
+	GLint modelLoc = glGetUniformLocation(modelShader->Program, "model");
+	GLint viewLoc = glGetUniformLocation(modelShader->Program, "view");
+	GLint projectionLoc = glGetUniformLocation(modelShader->Program, "projection");
+	// pass mat4 to shader
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+	// Draw container
+	glBindVertexArray(containerVAO);
+	model = glm::translate(model, cube);
+
+	model = glm::rotate(model, glm::radians(rotateCube), glm::vec3(0.0f, 1.0f, 0.0f));
+
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
+
+	// Draw normals
+	lineShader->Use();
+	glBindVertexArray(containerVAO);
+	modelLoc = glGetUniformLocation(lineShader->Program, "model");
+	viewLoc = glGetUniformLocation(lineShader->Program, "view");
+	projectionLoc = glGetUniformLocation(lineShader->Program, "projection");
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+	glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+	glBindVertexArray(0);
 }
