@@ -25,7 +25,7 @@ const GLuint WIDTH = 1280, HEIGHT = 1024;
 //glm::vec3 cameraPos = glm::vec3(0.0f, 2.0f, 3.0f);
 //glm::vec3 cameraFront = glm::vec3(0.0f, -1.0f, -1.0f);
 
-FPSCamera camera(glm::vec3(-1.5f, 2.5f, 4.0f));
+FPSCamera camera(glm::vec3(0.0f, 2.5f, 4.0f));
 // Used for fps camera
 bool keys[1024];
 GLfloat lastX = WIDTH/2.0f, lastY = HEIGHT/2.0f;
@@ -81,7 +81,7 @@ int main() {
 	glEnable(GL_MULTISAMPLE);
 
 	// Load our shaders
-	Shader lightingShader("shaders/simple3d.vs", "shaders/difuse_only.frag");
+	Shader lightedModel("shaders/simple3d.vs", "shaders/difuse_only.frag");
 	Shader outlineShader("shaders/outline.vs", "shaders/outline.frag", "shaders/outline_geometry.gs");
 	Shader lampShader("shaders/simple3d.vs", "shaders/lamp.frag");
 
@@ -131,8 +131,7 @@ int main() {
 		-0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
 	};
 
-
-	glm::vec3 cubePositions[] = {
+	/*glm::vec3 cubePositions[] = {
 		glm::vec3(0.0f,  0.0f,  0.0f),
 		glm::vec3(2.0f,  5.0f, -15.0f),
 		glm::vec3(-1.5f, -2.2f, -2.5f),
@@ -143,7 +142,15 @@ int main() {
 		glm::vec3(1.5f,  2.0f, -2.5f),
 		glm::vec3(1.5f,  0.2f, -1.5f),
 		glm::vec3(-1.3f,  1.0f, -1.5f)
-	};
+	};*/
+
+	const int numCubes = 2;
+	// 2x2
+	glm::vec3 cubePositions[numCubes];
+	for (int i = 0; i < numCubes; i++) {
+		GLfloat x = 1.0f * (i);
+		cubePositions[i] = glm::vec3(x, 0.0f, 0.0f);
+	}
 
 	GLuint VBO, containerVAO;
 	glGenVertexArrays(1, &containerVAO);
@@ -171,6 +178,10 @@ int main() {
 	glEnableVertexAttribArray(0);
 	glBindVertexArray(0);
 
+
+	glm::mat4 projection;
+	projection = glm::perspective(camera.Zoom, (GLfloat)(WIDTH / HEIGHT), 0.1f, 100.0f);
+
 	while (!glfwWindowShouldClose(window)) {
 		// timeDelta for different framerates
 		GLfloat currentFrame = glfwGetTime();
@@ -184,50 +195,63 @@ int main() {
 		glClearColor(0.1f, 0.1f, 0.15f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		lightingShader.Use();
-		// setup lighting uniform values
-		GLint objectColorLoc = glGetUniformLocation(lightingShader.Program, "objectColor");
-		GLint lightColorLoc = glGetUniformLocation(lightingShader.Program, "lightColor");
-		GLint lightPosLoc = glGetUniformLocation(lightingShader.Program, "lightPos");
-		glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
-		glUniform3f(lightColorLoc, 0.8f, 0.5f, 1.0f);
-		glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
+		GLint modelLoc;
+		GLint viewLoc;
+		GLint projectionLoc;
 
-		// Camera Transforms
-		//model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-		glm::mat4 view;
-		glm::mat4 projection;
-		view = camera.GetViewMatrix();
-		projection = glm::perspective(camera.Zoom, (GLfloat)(WIDTH / HEIGHT), 0.1f, 100.0f);
 
-		// uniform locations for vertex
-		GLint modelLoc = glGetUniformLocation(lightingShader.Program, "model");
-		GLint viewLoc = glGetUniformLocation(lightingShader.Program, "view");
-		GLint projectionLoc = glGetUniformLocation(lightingShader.Program, "projection");
-		// pass mat4 to shader
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-		// Draw container
-		glBindVertexArray(containerVAO);
 		glm::mat4 model;
-		model = glm::rotate(model, glm::radians(rotateCube), glm::vec3(0.0f, 1.0f, 0.0f));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
+		glm::mat4 view;
 
-		// Draw normals
-		outlineShader.Use();
-		glBindVertexArray(containerVAO);
-		modelLoc = glGetUniformLocation(outlineShader.Program, "model");
-		viewLoc = glGetUniformLocation(outlineShader.Program, "view");
-		projectionLoc = glGetUniformLocation(outlineShader.Program, "projection");
-		glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-		glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-		glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-		glDrawArrays(GL_TRIANGLES, 0, 36);
-		glBindVertexArray(0);
+		for (glm::vec3 cube : cubePositions) {
+			lightedModel.Use();
+			model = glm::mat4();
+			// setup lighting uniform values
+			GLint objectColorLoc = glGetUniformLocation(lightedModel.Program, "objectColor");
+			GLint lightColorLoc = glGetUniformLocation(lightedModel.Program, "lightColor");
+			GLint lightPosLoc = glGetUniformLocation(lightedModel.Program, "lightPos");
+			glUniform3f(objectColorLoc, 1.0f, 0.5f, 0.31f);
+			glUniform3f(lightColorLoc, 0.8f, 0.5f, 1.0f);
+			glUniform3f(lightPosLoc, lightPos.x, lightPos.y, lightPos.z);
 
+			// Camera Transforms
+			//model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+			view = camera.GetViewMatrix();
+
+			// uniform locations for vertex
+			GLint modelLoc = glGetUniformLocation(lightedModel.Program, "model");
+			GLint viewLoc = glGetUniformLocation(lightedModel.Program, "view");
+			GLint projectionLoc = glGetUniformLocation(lightedModel.Program, "projection");
+			// pass mat4 to shader
+			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+
+			// Draw container
+			glBindVertexArray(containerVAO);
+			model = glm::translate(model, cube);
+
+			// ADJUST FOR ROTATE
+			model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+			model = glm::rotate(model, glm::radians(rotateCube), glm::vec3(0.0f, 1.0f, 0.0f));
+			model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glBindVertexArray(0);
+
+			// Draw normals
+			outlineShader.Use();
+			glBindVertexArray(containerVAO);
+			modelLoc = glGetUniformLocation(outlineShader.Program, "model");
+			viewLoc = glGetUniformLocation(outlineShader.Program, "view");
+			projectionLoc = glGetUniformLocation(outlineShader.Program, "projection");
+			glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+			glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
+			glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+			glDrawArrays(GL_TRIANGLES, 0, 36);
+			glBindVertexArray(0);
+		}
+		
 		// lamp object
 		lampShader.Use();
 		modelLoc = glGetUniformLocation(lampShader.Program, "model");
