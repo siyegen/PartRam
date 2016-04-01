@@ -27,8 +27,8 @@ const GLuint WIDTH = 1280, HEIGHT = 1024;
 //glm::vec3 cameraPos = glm::vec3(0.0f, 2.0f, 3.0f);
 //glm::vec3 cameraFront = glm::vec3(0.0f, -1.0f, -1.0f);
 
-const int levelWidth = 30;
-const int numCubes = 50 * levelWidth;
+const int levelWidth = 24;
+const int numCubes = 30 * levelWidth;
 
 FPSCamera camera(glm::vec3(((GLfloat)levelWidth/2 - 0.5f), 12.5f, 20.0f), glm::vec3(0.0f, 1.0f, 0.0f), -90.0f, -15.0f);
 // Used for fps camera
