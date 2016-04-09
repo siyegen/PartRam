@@ -43,6 +43,12 @@
     <None Include="shaders\default3d.vs">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="shaders\text_simp.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\text_simp.vs">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="imgs\wall.jpg">
