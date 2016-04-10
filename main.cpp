@@ -187,6 +187,7 @@ void runSample4(GLFWwindow* window) {
 	textureShader.Use();
 	glUniformMatrix4fv(glGetUniformLocation(textureShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
 
+	glm::vec2 size(100.0f, 100.f);
 	while (!glfwWindowShouldClose(window)) {
 		GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
@@ -203,6 +204,7 @@ void runSample4(GLFWwindow* window) {
 
 		glm::mat4 model;
 		model = glm::translate(model, pPos);
+		model = glm::scale(model, glm::vec3(size, 1.0f)); // Last scale
 		//view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
 		//GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
