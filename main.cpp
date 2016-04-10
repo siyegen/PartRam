@@ -27,6 +27,8 @@ glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 6.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 
+glm::vec3 pPos(200.0f, 200.0f, 0.0f);
+
 bool keys[1024];
 
 GLfloat deltaTime = 0.0f;	// Time between current frame and last frame
@@ -63,8 +65,6 @@ int main() {
 
 void runSample4(GLFWwindow* window) {
 	// Setup mouse for fps style camera, will not need for game
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glfwSetCursorPosCallback(window, mouse_callback);
 
 	// Load our shaders
 	Shader ourShader("shaders/default3d.vs", "shaders/basic_frag.frag");
@@ -133,45 +133,32 @@ void runSample4(GLFWwindow* window) {
 	glfwSetKeyCallback(window, key_callback);
 
 
-	glm::mat4 model;
 	glm::mat4 view;
-	glm::mat4 projection;
 
 	// Texture stuff here
 	GLfloat box[] = {
-		// Positions          // Colors           // Texture Coords
-		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0f,   // Top Right
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f,   // Bottom Right
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f,   // Bottom Left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0f    // Top Left 
-	};
-	GLuint indices[] = {  // Note that we start from 0!
-		0, 1, 3, // First Triangle
-		1, 2, 3  // Second Triangle
+		// Pos      // Tex
+		0.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 0.0f, 1.0f, 0.0f,
+		0.0f, 0.0f, 0.0f, 0.0f,
+
+		0.0f, 1.0f, 0.0f, 1.0f,
+		1.0f, 1.0f, 1.0f, 1.0f,
+		1.0f, 0.0f, 1.0f, 0.0f
 	};
 
-	GLuint tVBO, tVAO, tEBO;
+	GLuint tVBO, tVAO;
 	glGenVertexArrays(1, &tVAO);
 	glGenBuffers(1, &tVBO);
-	glGenBuffers(1, &tEBO);
 
 	glBindVertexArray(tVAO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, tVBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(box), box, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tEBO);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
-
 	// Position attribute
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)0);
 	glEnableVertexAttribArray(0);
-	// Color attribute
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(3 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(1);
-	// TexCoord attribute
-	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (GLvoid*)(6 * sizeof(GLfloat)));
-	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (GLvoid*)0);
 
 	glBindVertexArray(0); // Unbind VAO
 
@@ -193,6 +180,13 @@ void runSample4(GLFWwindow* window) {
 	SOIL_free_image_data(image);
 	glBindTexture(GL_TEXTURE_2D, 0); // unbind
 
+
+	glm::mat4 projection;
+	projection = glm::ortho(0.0f, (GLfloat)WIDTH, (GLfloat)HEIGHT, 0.0f, -1.0f, 1.0f);
+
+	textureShader.Use();
+	glUniformMatrix4fv(glGetUniformLocation(textureShader.Program, "projection"), 1, GL_FALSE, glm::value_ptr(projection));
+
 	while (!glfwWindowShouldClose(window)) {
 		GLfloat currentFrame = glfwGetTime();
 		deltaTime = currentFrame - lastFrame;
@@ -206,10 +200,10 @@ void runSample4(GLFWwindow* window) {
 		glClear(GL_COLOR_BUFFER_BIT);// | GL_DEPTH_BUFFER_BIT);
 
 		//ourShader.Use();
-		//
-		//model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+
+		glm::mat4 model;
+		model = glm::translate(model, pPos);
 		//view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-		//projection = glm::perspective(glm::radians(45.0f), (GLfloat)(WIDTH / HEIGHT), 0.1f, 100.0f);
 
 		//GLint modelLoc = glGetUniformLocation(ourShader.Program, "model");
 		//GLint viewLoc = glGetUniformLocation(ourShader.Program, "view");
@@ -227,8 +221,11 @@ void runSample4(GLFWwindow* window) {
 		glBindTexture(GL_TEXTURE_2D, texture);
 
 		textureShader.Use();
+		glUniformMatrix4fv(glGetUniformLocation(textureShader.Program, "model"), 1, GL_FALSE, glm::value_ptr(model));
+		glUniform3f(glGetUniformLocation(textureShader.Program, "textColor"), 1.0f, 1.0f, 0.7f);
+
 		glBindVertexArray(tVAO);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 		glBindVertexArray(0);
 
 		glfwSwapBuffers(window);
@@ -237,21 +234,20 @@ void runSample4(GLFWwindow* window) {
 	//glDeleteVertexArrays(1, &VAO);
 	glDeleteVertexArrays(1, &tVAO);
 	glDeleteBuffers(1, &tVBO);
-	glDeleteBuffers(1, &tEBO);
 	glfwTerminate();
 }
 
 void doMovement() {
 	// Camera controls
-	/*GLfloat cameraSpeed = 3.0f * deltaTime;
+	//GLfloat cameraSpeed = 3.0f * deltaTime;
 	if (keys[GLFW_KEY_W])
-		cameraPos += cameraSpeed * cameraFront;
+		pPos.y += 0.1f;
 	if (keys[GLFW_KEY_S])
-		cameraPos -= cameraSpeed * cameraFront;
+		pPos.y -= 0.1f;
 	if (keys[GLFW_KEY_A])
-		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+		pPos.x -= 0.1f;
 	if (keys[GLFW_KEY_D])
-		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;*/
+		pPos.x += 0.1f;
 }
 
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode) {
